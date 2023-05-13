@@ -9,7 +9,7 @@ const initialState = {
   street: "",
   city: "",
   state: "",
-  zipCode: "",
+  zipCode: 0,
   // need to make vehicles an array once you get the stuff above accomplished
   vehicleVIN: "",
   vehicleYear: "",
@@ -60,7 +60,6 @@ function Home() {
       if (type === "DOB") {
         const currentYear = new Date().getFullYear();
         const year = new Date(value).getFullYear();
-
         return (
           value.length === 10 &&
           value.split("-").length === 3 &&
@@ -70,7 +69,7 @@ function Home() {
         return value.length === 5;
       }
       const year = Number(value);
-      const currentYear = new Date(year).getFullYear() + 1;
+      const currentYear = new Date().getFullYear() + 1;
       return year >= 1985 && year <= currentYear;
     },
     []
@@ -86,20 +85,21 @@ function Home() {
   );
 
   const handleFormChange = useCallback(
-    (e: Event) =>
+    (e: Event) => {
       setState({
         ...state,
         [e.target.name]: e.target.value
-      }),
+      });
+    },
     [state]
   );
 
   const handleOnBlurValidation = useCallback(
     (e: Event) => {
-      const validation = validator[e.target.name](e.target.value);
+      const valid = validator[e.target.name](e.target.value);
       setErrorState({
         ...errorState,
-        [e.target.name]: !validation
+        [e.target.name]: !valid
       });
     },
     [errorState]
@@ -115,19 +115,22 @@ function Home() {
       <h1>Application</h1>
       {anyErrors && <h4 className="error-message">{errors}</h4>}
       <form onSubmit={handleFormSubmit}>
+        <label>First name</label>
         <input
           type="text"
           name="firstName"
           value={state.firstName}
           onChange={handleFormChange}
         />
+        <label>Last name</label>
+
         <input
           type="text"
           name="lastName"
           value={state.lastName}
           onChange={handleFormChange}
         />
-        <label>DOB (ex: 01/01/1990)</label>
+        <label>Date of birth</label>
         <input
           type="date"
           name="DOB"
@@ -137,46 +140,56 @@ function Home() {
           onChange={handleFormChange}
         />
         <h4>Address</h4>
+        <label>Street</label>
         <input
           type="text"
           name="street"
           value={state.street}
           onChange={handleFormChange}
         />
+        <label>City</label>
         <input
           type="text"
           name="city"
           value={state.city}
           onChange={handleFormChange}
         />
+        <label>State</label>
         <input
           type="text"
           name="state"
           value={state.state}
           onChange={handleFormChange}
         />
+        <label>Zip code</label>
         <input
-          type="text"
           name="zipCode"
+          type="number"
+          min="0"
+          max="99999"
+          size="5"
           onBlur={handleOnBlurValidation}
           value={state.zipCode}
           onChange={handleFormChange}
         />
 
         <h4>Vehicles</h4>
+        <label>VIN</label>
         <input
           type="text"
           name="vehicleVIN"
           value={state.vehicleVIN}
           onChange={handleFormChange}
         />
+        <label>Year</label>
         <input
-          type="text"
+          type="number"
           name="vehicleYear"
           onBlur={handleOnBlurValidation}
           value={state.vehicleYear}
           onChange={handleFormChange}
         />
+        <label>Make and Model</label>
         <input
           type="text"
           name="vehicleMakeAndModel"
