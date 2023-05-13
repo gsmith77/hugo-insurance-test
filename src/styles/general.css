@@ -1,0 +1,9 @@
+.navigation-button {
+  color: inherit;
+  text-decoration: none;
+}
+
+.error-message {
+  color: red;
+  font-style: italic;
+}
