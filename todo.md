@@ -1,0 +1,5 @@
+- Create home page that has a welcome message and a button to say "start application" or "resume application"
+- Create Insurance Application Form
+- Have Insurance Application Form pull data if we are resuming the application
+- Create Validaton for all input fields
+- Send data to backend once form is finished
