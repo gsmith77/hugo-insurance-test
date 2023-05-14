@@ -1,11 +1,9 @@
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-nocheck
 import { useCallback, useMemo, useState } from "react";
 import { shallow } from "zustand/shallow";
 import axios from "axios";
-import useStore, { Store } from "../../store";
+import useStore from "../../store";
 
-const initialState: Store.application = {
+const initialState = {
   firstName: "",
   lastName: "",
   DOB: "",
@@ -26,11 +24,11 @@ const initialState: Store.application = {
 
 function Home() {
   const { application } = useStore(
-    (store: Store) => ({ application: store.application }),
+    store => ({ application: store.application }),
     shallow
   );
 
-  const [state, setState] = useState<any>(
+  const [state, setState] = useState(
     Object.keys(application || {}).length
       ? Object.assign(initialState, application)
       : initialState
@@ -140,6 +138,11 @@ function Home() {
       const hasAtLeastOneVehicleInputFilledOut = vehicleOptionalInputs.some(
         key => state[key]
       );
+      console.log(
+        "hasAtLeastOneVehicleInputFilledOut",
+        hasAtLeastOneVehicleInputFilledOut,
+        num
+      );
       if (
         hasAtLeastOneVehicleInputFilledOut &&
         didNotFillOutAllOfTheVehicleInputs
@@ -150,7 +153,7 @@ function Home() {
     const messges = errorsMsgs.join(", ");
     setErrors(messges);
     return messges.length ? true : false;
-  }, [state]);
+  }, [errors, state]);
 
   const handleFormChange = useCallback(
     (e: Event) => {

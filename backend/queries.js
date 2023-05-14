@@ -37,7 +37,10 @@ function createApplication(request, response) {
       if (error) {
         throw error;
       }
-      response.status(201).send(`Created application successfully!`);
+      response.status(201).send({
+        message: `Created application successfully!`,
+        quote: Math.floor(Math.random() * (1000 - 0) + 100)
+      });
     }
   );
 }
@@ -84,7 +87,10 @@ function updateApplication(request, response) {
       if (error) {
         throw error;
       }
-      response.status(200).send(`Updated application successfully!`);
+      response.status(200).send({
+        message: `Updated application successfully!`,
+        quote: Math.floor(Math.random() * (1000 - 0) + 100)
+      });
     }
   );
 }

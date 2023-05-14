@@ -1,6 +1,3 @@
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-nocheck
-
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { shallow } from "zustand/shallow";
@@ -14,12 +11,6 @@ function Home() {
   );
 
   useEffect(() => {
-    // on load of page
-    // fetch to see if there is an application in the database
-    // const application = false; // fetch to see if there is an application  in the database
-    // if (application) {
-    //   return setapplicationToResume(true);
-    // }
     (async () => {
       try {
         const { data } = await axios.get("http://localhost:3100/application");
@@ -41,7 +32,6 @@ function Home() {
           Start new application
         </a>
       </button>
-      {/* Only show Resume application if there is an application in the database */}
       <button>
         <a
           className="navigation-button"
