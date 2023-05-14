@@ -32,7 +32,7 @@ function Home() {
 
   const [state, setState] = useState<any>(
     Object.keys(application || {}).length
-      ? Object.assign(application, initialState)
+      ? Object.assign(initialState, application)
       : initialState
   );
 
@@ -76,11 +76,7 @@ function Home() {
       if (type === "DOB") {
         const currentYear = new Date().getFullYear();
         const year = new Date(value).getFullYear();
-        return (
-          value.length === 10 &&
-          value.split("-").length === 3 &&
-          currentYear - year >= 16
-        );
+        return currentYear - year >= 16;
       } else if (type === "zipCode") {
         return value.length === 5;
       }
@@ -98,7 +94,6 @@ function Home() {
   const validateEntireForm = useCallback(() => {
     const errorsMsgs = [];
 
-    // all good
     ["firstName", "lastName", "street", "city", "state"].forEach(input => {
       if (!String(state[input]).length) {
         const message = `${input} cannot be blank`;
@@ -106,7 +101,6 @@ function Home() {
       }
     });
 
-    // All good
     ["DOB", "zipCode"].forEach(input => {
       if (!String(state[input]).length) {
         const message = `${input} cannot be blank`;
@@ -173,14 +167,22 @@ function Home() {
       e.preventDefault();
       const errors = validateEntireForm();
       if (!errors) {
+        // if (Object.keys(application || {}).length) {
         (async () => {
-          const data = await axios.post("http://localhost:3100/application", {
+          const data = await axios.put("http://localhost:3100/application", {
             ...state
           });
         })();
+        // } else {
+        // (async () => {
+        //   const data = await axios.post("http://localhost:3100/application", {
+        //     ...state
+        //   });
+        // })();
+        // }
       }
     },
-    [state]
+    [application, state]
   );
 
   return (
