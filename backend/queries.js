@@ -17,6 +17,7 @@ function getApplication(request, response) {
 }
 
 function createApplication(request, response) {
+  console.log("called createApplication");
   delete request.body.id;
   const data = {
     ...request.body,
@@ -46,6 +47,7 @@ function createApplication(request, response) {
 }
 
 function updateApplication(request, response) {
+  console.log("called updateApplication");
   const id = request.body.id;
 
   delete request.body.id;

@@ -1,11 +1,11 @@
 import { useEffect } from "react";
 import axios from "axios";
 import { shallow } from "zustand/shallow";
-import useStore, { Store } from "../store";
+import useStore from "../store";
 import "../styles/general.css";
 
 function Home() {
-  const { application }: { application: Store.application } = useStore(
+  const { application } = useStore(
     store => ({ application: store.application }),
     shallow
   );
@@ -13,8 +13,10 @@ function Home() {
   useEffect(() => {
     (async () => {
       try {
-        const { data } = await axios.get("http://localhost:3100/application");
-        useStore.setState({ application: data[0] });
+        const { data = [{}] } = await axios.get(
+          "http://localhost:3100/application"
+        );
+        useStore.setState({ application: data[0], quote: undefined });
       } catch (err) {
         console.log("Error occured when fetching application");
       }
@@ -32,16 +34,15 @@ function Home() {
           Start new application
         </a>
       </button>
-      <button>
-        <a
-          className="navigation-button"
-          href={
-            Boolean(Object.keys(application || {}).length === 0) ? "/" : "/form"
-          }
-        >
-          Resume application
-        </a>
-      </button>
+      {Boolean(
+        Object.keys(application || {}).some(key => !!application[key])
+      ) && (
+        <button>
+          <a className="navigation-button" href="/form">
+            Resume application
+          </a>
+        </button>
+      )}
     </div>
   );
 }

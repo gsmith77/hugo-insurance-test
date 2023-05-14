@@ -29,11 +29,10 @@ function Home() {
   );
 
   const [state, setState] = useState(
-    Object.keys(application || {}).length
+    Object.keys(application || {}).some(key => !!application[key])
       ? Object.assign(initialState, application)
       : initialState
   );
-
   const [errors, setErrors] = useState("");
 
   const formattedDOB = useMemo(
@@ -111,6 +110,7 @@ function Home() {
     });
     // vehicle1 validation
     const validVehicle1Year = validation("vehicleYear", state["vehicle1Year"]);
+
     if (!validVehicle1Year) {
       errorsMsgs.push(errorMessages[`vehicle1Year`]);
     }
@@ -166,27 +166,30 @@ function Home() {
       e.preventDefault();
       const errors = validateEntireForm();
       if (!errors) {
-        if (Object.keys(application || {}).length) {
+        if (Object.keys(application || {}).some(key => !!application[key])) {
           (async () => {
-            const { data } = await axios.put(
-              "http://localhost:3100/application",
-              {
-                ...state
-              }
+            const {
+              data: { quote }
+            } = await axios.put("http://localhost:3100/application", {
+              ...state,
+              id: application.id
+            });
+            const { data = [{}] } = await axios.get(
+              "http://localhost:3100/application"
             );
-            console.log("put data", data.quote);
-            useStore.setState({ quote: data.quote });
+            useStore.setState({ application: data[0], quote });
           })();
         } else {
           (async () => {
-            const { data } = await axios.post(
-              "http://localhost:3100/application",
-              {
-                ...state
-              }
+            const {
+              data: { quote }
+            } = await axios.post("http://localhost:3100/application", {
+              ...state
+            });
+            const { data = [{}] } = await axios.get(
+              "http://localhost:3100/application"
             );
-            console.log("post data", data.quote);
-            useStore.setState({ quote: data.quote });
+            useStore.setState({ application: data[0], quote });
           })();
         }
       }
