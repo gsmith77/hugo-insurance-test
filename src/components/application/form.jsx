@@ -23,8 +23,8 @@ const initialState = {
 };
 
 function Home() {
-  const { application } = useStore(
-    store => ({ application: store.application }),
+  const { application, quote } = useStore(
+    store => ({ application: store.application, quote: store.quote }),
     shallow
   );
 
@@ -138,11 +138,7 @@ function Home() {
       const hasAtLeastOneVehicleInputFilledOut = vehicleOptionalInputs.some(
         key => state[key]
       );
-      console.log(
-        "hasAtLeastOneVehicleInputFilledOut",
-        hasAtLeastOneVehicleInputFilledOut,
-        num
-      );
+
       if (
         hasAtLeastOneVehicleInputFilledOut &&
         didNotFillOutAllOfTheVehicleInputs
@@ -153,7 +149,7 @@ function Home() {
     const messges = errorsMsgs.join(", ");
     setErrors(messges);
     return messges.length ? true : false;
-  }, [errors, state]);
+  }, [errorMessages, state, validation]);
 
   const handleFormChange = useCallback(
     (e: Event) => {
@@ -170,22 +166,32 @@ function Home() {
       e.preventDefault();
       const errors = validateEntireForm();
       if (!errors) {
-        // if (Object.keys(application || {}).length) {
-        (async () => {
-          const data = await axios.put("http://localhost:3100/application", {
-            ...state
-          });
-        })();
-        // } else {
-        // (async () => {
-        //   const data = await axios.post("http://localhost:3100/application", {
-        //     ...state
-        //   });
-        // })();
-        // }
+        if (Object.keys(application || {}).length) {
+          (async () => {
+            const { data } = await axios.put(
+              "http://localhost:3100/application",
+              {
+                ...state
+              }
+            );
+            console.log("put data", data.quote);
+            useStore.setState({ quote: data.quote });
+          })();
+        } else {
+          (async () => {
+            const { data } = await axios.post(
+              "http://localhost:3100/application",
+              {
+                ...state
+              }
+            );
+            console.log("post data", data.quote);
+            useStore.setState({ quote: data.quote });
+          })();
+        }
       }
     },
-    [application, state]
+    [application, state, validateEntireForm]
   );
 
   return (
@@ -324,6 +330,7 @@ function Home() {
           value="Submit application"
         />
       </form>
+      {!!quote && <h1>Your quote is: ${quote}</h1>}
     </div>
   );
 }

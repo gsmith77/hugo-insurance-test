@@ -12,8 +12,12 @@ app.use(
   })
 );
 
-// Allow requests from every domain
-app.use(cors());
+// Allow requests from localhost
+app.use(
+  cors({
+    origin: "http://localhost:3000"
+  })
+);
 
 app.get("/", (request, response) => {
   response.json({ info: "Node.js, Express, and Postgres API" });

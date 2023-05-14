@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import axios from "axios";
 import { shallow } from "zustand/shallow";
 import useStore, { Store } from "../store";
@@ -16,7 +16,7 @@ function Home() {
         const { data } = await axios.get("http://localhost:3100/application");
         useStore.setState({ application: data[0] });
       } catch (err) {
-        console.log("Error occured when fetching books");
+        console.log("Error occured when fetching application");
       }
     })();
   }, []);

@@ -19,7 +19,8 @@ const initialStore = {
     vehicle3VIN: "",
     vehicle3Year: "",
     vehicle3MakeAndModel: ""
-  }
+  },
+  quote: undefined
 };
 
 const useStore = create(
