@@ -8,15 +8,20 @@ import useStore, { Store } from "../../store";
 const initialState: Store.application = {
   firstName: "",
   lastName: "",
-  DOB: undefined, // 04/03/1977
+  DOB: "",
   street: "",
   city: "",
   state: "",
   zipCode: 0,
-  // need to make vehicles an array once you get the stuff above accomplished
-  vehicleVIN: "",
-  vehicleYear: "",
-  vehicleMakeAndModel: ""
+  vehicle1VIN: "",
+  vehicle1Year: "",
+  vehicle1MakeAndModel: "",
+  vehicle2VIN: "",
+  vehicle2Year: "",
+  vehicle2MakeAndModel: "",
+  vehicle3VIN: "",
+  vehicle3Year: "",
+  vehicle3MakeAndModel: ""
 };
 
 function Home() {
@@ -26,54 +31,49 @@ function Home() {
   );
 
   const [state, setState] = useState<any>(
-    Object.keys(application || {}).length ? application : initialState
+    Object.keys(application || {}).length
+      ? Object.assign(application, initialState)
+      : initialState
   );
 
+  const [errors, setErrors] = useState("");
+
   const formattedDOB = useMemo(
-    () => new Date(state.DOB).toISOString().split("T")[0],
+    () =>
+      !state.DOB
+        ? undefined
+        : new Date(state.DOB)?.toISOString()?.split("T")?.[0],
     [state.DOB]
   );
 
-  const [errorState, setErrorState] = useState<any>({
-    DOB: false, // 04/03/1977
-    zipCode: false,
-    // need to make vehicles an array once you get the stuff above accomplished
-    vehicleYear: false
-  });
-
   const errorMessages = useMemo(
     () => ({
-      DOB: "You must be older than 16.",
-      zipCode: "Must be 5 numerics digits.",
-      vehicleYear:
-        "Must be numeric digits and vehicle year must be between 1985 and current year + 1"
+      DOB: "Date of birth - You must be older than 16.",
+      zipCode: "Zip code must be 5 numerics digits.",
+      vehicle1Year:
+        "Vehicle year 1 must be numeric digits and between 1985 and current year + 1.",
+      vehicle2Year:
+        "Vehicle year 2 must be numeric digits and between 1985 and current year + 1.",
+      vehicle3Year:
+        "Vehicle year 3 must be numeric digits and between 1985 and current year + 1.",
+      vehicle1:
+        "All of the fields for vehicle 1 are required if you have any of the inputs for vehicle 1 are filled out.",
+      vehicle2:
+        "All of the fields for vehicle 2 are required if you have any of the inputs for vehicle 2 are filled out.",
+      vehicle3:
+        "All of the fields for vehicle 3 are required if you have any of the inputs for vehicle 3 are filled out."
     }),
     []
   );
 
-  const anyErrors = useMemo(
-    () => Object.values(errorState).some(value => value === true),
-    [errorState]
-  );
-
-  const errors = useMemo(() => {
-    const message = [];
-    Object.keys(errorState).forEach((key: string) => {
-      if (errorState[key]) {
-        return message.push(errorMessages[key]);
-      }
-    });
-    return message.join(" ");
-  }, [anyErrors, errorState]);
+  const anyErrors = useMemo(() => errors.length, [errors]);
 
   const validation = useCallback(
     (
       type: "DOB" | "zipCode" | "vehicleYear",
       value: string | Date | number
     ) => {
-      if (value === initialState[type]) return true;
       if (type === "DOB") {
-        console.log("value", value);
         const currentYear = new Date().getFullYear();
         const year = new Date(value).getFullYear();
         return (
@@ -84,6 +84,7 @@ function Home() {
       } else if (type === "zipCode") {
         return value.length === 5;
       }
+      // vehicleYear validation
       const year = Number(value);
       const currentYear = new Date().getFullYear() + 1;
       return year >= 1985 && year <= currentYear;
@@ -91,14 +92,71 @@ function Home() {
     []
   );
 
-  const validator = useMemo(
-    () => ({
-      DOB: value => validation("DOB", value),
-      zipCode: value => validation("zipCode", value),
-      vehicleYear: value => validation("vehicleYear", value)
-    }),
-    []
-  );
+  /**
+   * Validate entire form
+   */
+  const validateEntireForm = useCallback(() => {
+    const errorsMsgs = [];
+
+    // all good
+    ["firstName", "lastName", "street", "city", "state"].forEach(input => {
+      if (!String(state[input]).length) {
+        const message = `${input} cannot be blank`;
+        errorsMsgs.push(message);
+      }
+    });
+
+    // All good
+    ["DOB", "zipCode"].forEach(input => {
+      if (!String(state[input]).length) {
+        const message = `${input} cannot be blank`;
+        return errorsMsgs.push(message);
+      }
+      const valid = validation(input, state[input]);
+      if (!valid) {
+        return errorsMsgs.push(errorMessages[input]);
+      }
+    });
+    // vehicle1 validation
+    const validVehicle1Year = validation("vehicleYear", state["vehicle1Year"]);
+    if (!validVehicle1Year) {
+      errorsMsgs.push(errorMessages[`vehicle1Year`]);
+    }
+    const vehicle1Inputs = [
+      `vehicle1VIN`,
+      `vehicle1Year`,
+      `vehicle1MakeAndModel`
+    ];
+    const didNotFillOutAllOfTheVehicleInputs = vehicle1Inputs.every(
+      key => !!state[key]
+    );
+    if (!didNotFillOutAllOfTheVehicleInputs) {
+      errorsMsgs.push(errorMessages[`vehicle1`]);
+    }
+
+    [2, 3].forEach(num => {
+      const vehicleOptionalInputs = [
+        `vehicle${num}VIN`,
+        `vehicle${num}Year`,
+        `vehicle${num}MakeAndModel`
+      ];
+      const didNotFillOutAllOfTheVehicleInputs = vehicleOptionalInputs.some(
+        key => !state[key]
+      );
+      const hasAtLeastOneVehicleInputFilledOut = vehicleOptionalInputs.some(
+        key => state[key]
+      );
+      if (
+        hasAtLeastOneVehicleInputFilledOut &&
+        didNotFillOutAllOfTheVehicleInputs
+      ) {
+        errorsMsgs.push(errorMessages[`vehicle${num}`]);
+      }
+    });
+    const messges = errorsMsgs.join(", ");
+    setErrors(messges);
+    return messges.length ? true : false;
+  }, [state]);
 
   const handleFormChange = useCallback(
     (e: Event) => {
@@ -110,30 +168,27 @@ function Home() {
     [state]
   );
 
-  const handleOnBlurValidation = useCallback(
+  const handleFormSubmit = useCallback(
     (e: Event) => {
-      const valid = validator[e.target.name](e.target.value);
-      setErrorState({
-        ...errorState,
-        [e.target.name]: !valid
-      });
+      e.preventDefault();
+      const errors = validateEntireForm();
+      if (!errors) {
+        (async () => {
+          const data = await axios.post("http://localhost:3100/application", {
+            ...state
+          });
+        })();
+      }
     },
-    [errorState]
+    [state]
   );
-
-  const handleFormSubmit = useCallback((e: Event) => {
-    e.preventDefault();
-    // run validation on all inputs
-    (async () => {
-      const data = await axios.post("http://localhost:3100/application", state);
-    })();
-  }, []);
 
   return (
     <div>
       <h1>Application</h1>
-      {anyErrors && <h4 className="error-message">{errors}</h4>}
+      {!!anyErrors && <h4 className="error-message">{errors}</h4>}
       <form onSubmit={handleFormSubmit}>
+        <h4>Contact Information</h4>
         <label>First name</label>
         <input
           type="text"
@@ -153,8 +208,7 @@ function Home() {
         <input
           type="date"
           name="DOB"
-          onBlur={handleOnBlurValidation}
-          value={formattedDOB} // "1996-04-03"
+          value={formattedDOB}
           onChange={handleFormChange}
         />
         <h4>Address</h4>
@@ -186,33 +240,83 @@ function Home() {
           min="0"
           max="99999"
           size="5"
-          onBlur={handleOnBlurValidation}
           value={state.zipCode}
           onChange={handleFormChange}
         />
 
         <h4>Vehicles</h4>
+        <h5>Vehicle1</h5>
         <label>VIN</label>
         <input
           type="text"
-          name="vehicleVIN"
-          value={state.vehicleVIN}
+          name="vehicle1VIN"
+          value={state.vehicle1VIN}
           onChange={handleFormChange}
         />
         <label>Year</label>
         <input
           type="number"
-          name="vehicleYear"
-          onBlur={handleOnBlurValidation}
-          value={state.vehicleYear}
+          name="vehicle1Year"
+          value={state.vehicle1Year}
           onChange={handleFormChange}
         />
         <label>Make and Model</label>
         <input
           type="text"
-          name="vehicleMakeAndModel"
-          value={state.vehicleMakeAndModel}
+          name="vehicle1MakeAndModel"
+          value={state.vehicle1MakeAndModel}
           onChange={handleFormChange}
+        />
+        <h5>Vehicle2</h5>
+        <label>VIN</label>
+        <input
+          type="text"
+          name="vehicle2VIN"
+          value={state.vehicle2VIN}
+          onChange={handleFormChange}
+        />
+        <label>Year</label>
+        <input
+          type="number"
+          name="vehicle2Year"
+          value={state.vehicle2Year}
+          onChange={handleFormChange}
+        />
+        <label>Make and Model</label>
+        <input
+          type="text"
+          name="vehicle2MakeAndModel"
+          value={state.vehicle2MakeAndModel}
+          onChange={handleFormChange}
+        />
+        <h5>Vehicle3</h5>
+        <label>VIN</label>
+        <input
+          type="text"
+          name="vehicle3VIN"
+          value={state.vehicle3VIN}
+          onChange={handleFormChange}
+        />
+        <label>Year</label>
+        <input
+          type="number"
+          name="vehicle3Year"
+          value={state.vehicle3Year}
+          onChange={handleFormChange}
+        />
+        <label>Make and Model</label>
+        <input
+          type="text"
+          name="vehicle3MakeAndModel"
+          value={state.vehicle3MakeAndModel}
+          onChange={handleFormChange}
+        />
+        <br />
+        <br />
+        <input
+          onSubmit={handleFormSubmit}
+          type="submit"
+          value="Submit application"
         />
       </form>
     </div>
