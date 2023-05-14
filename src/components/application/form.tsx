@@ -1,8 +1,11 @@
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-nocheck
 import { useCallback, useMemo, useState } from "react";
+import { shallow } from "zustand/shallow";
+import axios from "axios";
+import useStore, { Store } from "../../store";
 
-const initialState = {
+const initialState: Store.application = {
   firstName: "",
   lastName: "",
   DOB: undefined, // 04/03/1977
@@ -17,7 +20,19 @@ const initialState = {
 };
 
 function Home() {
-  const [state, setState] = useState<any>(initialState);
+  const { application } = useStore(
+    (store: Store) => ({ application: store.application }),
+    shallow
+  );
+
+  const [state, setState] = useState<any>(
+    Object.keys(application || {}).length ? application : initialState
+  );
+
+  const formattedDOB = useMemo(
+    () => new Date(state.DOB).toISOString().split("T")[0],
+    [state.DOB]
+  );
 
   const [errorState, setErrorState] = useState<any>({
     DOB: false, // 04/03/1977
@@ -58,6 +73,7 @@ function Home() {
     ) => {
       if (value === initialState[type]) return true;
       if (type === "DOB") {
+        console.log("value", value);
         const currentYear = new Date().getFullYear();
         const year = new Date(value).getFullYear();
         return (
@@ -108,6 +124,9 @@ function Home() {
   const handleFormSubmit = useCallback((e: Event) => {
     e.preventDefault();
     // run validation on all inputs
+    (async () => {
+      const data = await axios.post("http://localhost:3100/application", state);
+    })();
   }, []);
 
   return (
@@ -135,8 +154,7 @@ function Home() {
           type="date"
           name="DOB"
           onBlur={handleOnBlurValidation}
-          placeholder="01/01/1990"
-          value={state.DOB}
+          value={formattedDOB} // "1996-04-03"
           onChange={handleFormChange}
         />
         <h4>Address</h4>
